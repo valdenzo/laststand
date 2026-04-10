@@ -61,8 +61,10 @@ uv run ruff format src tests
 uv run mypy src
 uv run pytest
 
-# migrations
+# migrations (sync engine via psycopg2-binary, runtime stays on asyncpg)
 uv run alembic upgrade head
+uv run alembic downgrade base
+uv run alembic check
 uv run alembic revision --autogenerate -m "message"
 
 # run the daemon (scheduler + /metrics)
@@ -85,20 +87,20 @@ Tracked as phases. Each phase is verifiable end-to-end before the next starts.
   - [x] `db/engine.py`, `db/session.py`
   - [x] `obs/metrics.py`, `obs/server.py` (`/metrics`, `/healthz`)
   - [x] `main.py` entrypoint (uvloop + signal handling)
-  - [x] Alembic async env under `src/arber/db/migrations/`
+  - [x] Alembic env under `src/arber/db/migrations/` (sync engine via `psycopg2-binary`)
   - [x] `docker-compose.yml` Postgres 16 on `:5433`
   - [x] `.env.example`
 
-- [ ] **Phase 2 — Core schema**
-  - [ ] ORM models for `sports`, `competitions`, `seasons`, `teams`, `fixtures` (+ `fixture_status` enum)
-  - [ ] ORM models for `reference_sources`, `reference_competitions`, `reference_teams`, `reference_fixtures`
-  - [ ] ORM models for `bookmakers`, `bookmaker_competitions`, `bookmaker_fixtures`, `bookmaker_markets`
-  - [ ] ORM models for `team_aliases` (generated `alias_norm`), `team_alias_candidates`
-  - [ ] ORM models for `sport_periods`, `betting_markets`, `market_outcomes`
-  - [ ] ORM models for `odds_current`, `arbitrage_opportunities`, `arbitrage_legs`, `ingest_runs`
-  - [ ] Raw-SQL migration for `odds_history` (range-partitioned on `observed_at`, single default partition to start)
-  - [ ] Initial Alembic migration applies everything cleanly up + down against a testcontainer Postgres
-  - [ ] Extensions: `pg_trgm`, `pgcrypto`, `btree_gin`
+- [x] **Phase 2 — Core schema**
+  - [x] ORM models for `sports`, `competitions`, `seasons`, `teams`, `fixtures` (+ `fixture_status` enum)
+  - [x] ORM models for `reference_sources`, `reference_competitions`, `reference_teams`, `reference_seasons`, `reference_fixtures`
+  - [x] ORM models for `bookmakers`, `bookmaker_competitions`, `bookmaker_fixtures`, `bookmaker_markets`
+  - [x] ORM models for `team_aliases` (generated `alias_norm`), `team_alias_candidates` (with `promoted_score`)
+  - [x] ORM models for `sport_periods`, `betting_markets` (`market_type` + CHECK), `market_outcomes`
+  - [x] ORM models for `odds_current` (`line` + `line_pair` generated), `arbitrage_opportunities`, `arbitrage_legs`, `ingest_runs`
+  - [x] Raw-SQL migration for `odds_history` (range-partitioned on `observed_at`, default partition to start)
+  - [x] Initial Alembic migration applies everything cleanly up + down; `alembic check` shows no drift
+  - [x] Extensions: `pg_trgm`, `pgcrypto`, `btree_gin`
 
 - [ ] **Phase 3 — ESPN reference sync**
   - [ ] `http/client.py` (httpx) + `http/rate_limit.py` (per-host token bucket)
