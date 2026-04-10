@@ -17,7 +17,7 @@ class DatabaseSettings(BaseSettings):
 
     @property
     def sync_dsn(self) -> str:
-        return str(self.dsn).replace("postgresql+asyncpg", "postgresql+psycopg")
+        return str(self.dsn).replace("postgresql+asyncpg", "postgresql+psycopg2")
 
     @property
     def async_dsn(self) -> str:
